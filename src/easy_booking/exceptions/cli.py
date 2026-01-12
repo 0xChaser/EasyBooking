@@ -1,0 +1,2 @@
+class EasyBookingCLIException(Exception):
+    pass

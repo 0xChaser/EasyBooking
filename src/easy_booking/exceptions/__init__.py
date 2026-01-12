@@ -1,0 +1,1 @@
+from easy_booking.exceptions.cli import EasyBookingCLIException
