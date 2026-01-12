@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import UUID
 
 from fastapi_users import schemas
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from easy_booking.utils import optional
 
@@ -13,8 +13,7 @@ class UserRead(schemas.BaseUser[UUID]):
     email: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserCreate(schemas.BaseUserCreate):
@@ -40,8 +39,7 @@ class UserOut(BaseModel):
     first_name: str
     last_name: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 @optional

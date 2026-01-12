@@ -1,0 +1,60 @@
+services:
+
+   easy_booking_back:
+     image: easy_booking_back:latest
+     container_name: "easy_booking"
+     build:
+       context: .
+       dockerfile: Dockerfile
+       target: development
+     volumes:
+       - .:/app
+       - ~/.ssh:/root/.ssh
+       - /root/config
+     ports:
+       - "8001:8000"
+     depends_on:
+       - easy_booking_db
+     restart: always
+     networks:
+       - "easy_booking_network"
+
+   easy_booking_db:
+    container_name: "easy_booking_db"
+    image: postgres:latest
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+    env_file:
+      - .env
+    networks:
+      - "easy_booking_network"
+
+   easy_booking_pgadmin:
+    container_name: "easy_booking_pgadmin"
+    image: dpage/pgadmin4:latest
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      - easy_booking_db
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - "easy_booking_network"
+
+volumes:
+  postgres_data:
+
+networks:
+  easy_booking_network:
+    driver: bridge

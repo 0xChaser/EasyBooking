@@ -1,0 +1,58 @@
+[project]
+name = "easy_booking"
+description = "EasyBooking with FastAPI"
+authors = [
+    {name="0xChaser"}
+]
+readme = "readme.md"
+requires-python = ">=3.10"
+dependencies = [
+    "alembic>=1.11.1",
+    "asyncpg>=0.30.0",
+    "fastapi[all]>=0.115.5",
+    "fastapi-filter>=2.0.0",
+    "fastapi-users[sqlalchemy]",
+    "greenlet>=3.1.1",
+    "pydantic>=2.0.3",
+    "sentry-sdk[fastapi]",
+    "sqlalchemy>=2.0.19",
+    "sqlalchemy-utils>=0.41.2",
+    "loguru>=0.7.2",
+    "typer>=0.13.1",
+    "uvicorn>=0.32.1",
+    "pytest-benchmark>=5.2.3",
+    "pytest-xdist>=3.8.0",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+    "black>=23.7.0",
+    "faker>=29.0.0",
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "httpx>=0.24.0",
+    "aiosqlite>=0.19.0",
+    "ruff>=0.11.10",
+    "pytest-benchmark>=4.0.0",
+    "pytest-xdist>=3.3.1",
+]
+
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+# This section need to exists to enable dynamic versioning based on Git commit and distance with tags etc...
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+easy_booking = "easy_booking.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
