@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import UUID, TIMESTAMP, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -21,10 +21,10 @@ class Booking(Base):
         UUID(as_uuid=True), ForeignKey("rooms.id"), nullable=False
     )
     
-    start_time: Mapped[datetime] = mapped_column(TIMESTAMP, nullable=False)
-    end_time: Mapped[datetime] = mapped_column(TIMESTAMP, nullable=False)
+    start_time: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
+    end_time: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.utcnow, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 
     user: Mapped["User"] = relationship("User", back_populates="bookings")
     room: Mapped["Room"] = relationship("Room", back_populates="bookings")
