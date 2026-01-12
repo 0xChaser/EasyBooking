@@ -37,6 +37,7 @@ dev = [
     "ruff>=0.11.10",
     "pytest-benchmark>=4.0.0",
     "pytest-xdist>=3.3.1",
+    "pytest-monitor>=1.6.6",
 ]
 
 [build-system]
@@ -56,3 +57,9 @@ easy_booking = "easy_booking.cli:main"
 testpaths = ["tests"]
 pythonpath = ["."]
 asyncio_mode = "auto"
+
+[tool.pytest_monitor]
+db = ".pytest_monitor.db"
+monitor_memory = true
+monitor_cpu = true
+component = "EasyBooking"

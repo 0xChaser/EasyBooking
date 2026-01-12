@@ -9,3 +9,4 @@ script.py
 .pytest_cache
 build/
 .coverage
+.pytest_monitor.db
