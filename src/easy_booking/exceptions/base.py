@@ -19,3 +19,5 @@ class Conflict(ABC, HTTPException):
     def __init__(self, detail) -> None:
         status_code = status.HTTP_409_CONFLICT
         super().__init__(status_code, detail)
+
+INVALIDDATATYPE = "Invalid Data type"
