@@ -271,6 +271,7 @@ class TestAuthenticationWorkflows:
 
         protected_endpoints = [
             ("/user/me", "GET"),
+            ("/booking/", "GET"),
         ]
         
         for endpoint, method in protected_endpoints:
@@ -281,7 +282,6 @@ class TestAuthenticationWorkflows:
         
         public_endpoints = [
             ("/room/", "GET"),
-            ("/booking/", "GET"),
         ]
         
         for endpoint, method in public_endpoints:

@@ -3,9 +3,11 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from easy_booking.api.v1.booking import current_active_user
 from easy_booking.daos.booking import BookingDao
 from easy_booking.daos.room import RoomDao
 from easy_booking.daos.user import UserDao
+from easy_booking.main import app
 from easy_booking.schemas.booking import BookingIn
 from easy_booking.services.booking import BookingService
 from easy_booking.services.room import RoomService
@@ -44,7 +46,11 @@ class TestBookingRouter:
             )
             created_bookings.append(created_booking)
 
-        response = await test_client.get("/booking/?offset=0&limit=10")
+        app.dependency_overrides[current_active_user] = lambda: created_user
+        try:
+            response = await test_client.get("/booking/?offset=0&limit=10")
+        finally:
+            del app.dependency_overrides[current_active_user]
 
         assert response.status_code == 200
         page_result = response.json()
@@ -58,6 +64,48 @@ class TestBookingRouter:
         for booking in created_bookings:
             assert str(booking.id) in booking_ids
 
+        await BookingService.delete_all(test_session)
+
+    async def test_get_all_booking_filtering(self, test_session, test_client):
+        await BookingService.delete_all(test_session)
+        
+        user_dao = UserDao(test_session)
+        room_dao = RoomDao(test_session)
+        
+        # User A
+        user_a = await user_dao.create(FakeDataGenerator.fake_user())
+        room_a = await room_dao.create(FakeDataGenerator.fake_room())
+        booking_a = await BookingService.add_booking(
+            FakeDataGenerator.fake_booking_in(override={"room_id": room_a.id}),
+            test_session,
+            user_a.id
+        )
+
+        # User B
+        user_b = await user_dao.create(FakeDataGenerator.fake_user())
+        room_b = await room_dao.create(FakeDataGenerator.fake_room())
+        booking_b = await BookingService.add_booking(
+            FakeDataGenerator.fake_booking_in(override={"room_id": room_b.id}),
+            test_session,
+            user_b.id
+        )
+
+        # Authenticate as User A
+        app.dependency_overrides[current_active_user] = lambda: user_a
+        try:
+            response = await test_client.get("/booking/?offset=0&limit=10")
+        finally:
+            del app.dependency_overrides[current_active_user]
+
+        assert response.status_code == 200
+        result = response.json()
+        
+        # Should see only 1 booking (User A's)
+        assert result["total"] == 1
+        assert len(result["items"]) == 1
+        assert result["items"][0]["id"] == str(booking_a.id)
+
+        # Cleanup
         await BookingService.delete_all(test_session)
 
     async def test_get_booking_by_id(self, test_session, test_client):

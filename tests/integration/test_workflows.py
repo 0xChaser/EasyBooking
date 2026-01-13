@@ -3,6 +3,9 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from easy_booking.api.v1.booking import current_active_user
+from easy_booking.main import app
+
 from easy_booking.daos.booking import BookingDao
 from easy_booking.daos.room import RoomDao
 from easy_booking.daos.user import UserDao
@@ -91,12 +94,22 @@ class TestBookingWorkflow:
             booking = await BookingService.add_booking(booking_in, test_session, user.id)
             bookings.append(booking)
 
-        response = await test_client.get("/booking/?offset=0&limit=10")
+        # Create a superuser to view all bookings
+        superuser = await user_dao.create(FakeDataGenerator.fake_user(override={"is_superuser": True}))
+
+        app.dependency_overrides[current_active_user] = lambda: superuser
+        try:
+            response = await test_client.get("/booking/?offset=0&limit=10")
+        finally:
+            del app.dependency_overrides[current_active_user]
+
         assert response.status_code == 200
         page = response.json()
         booking_ids = [b["id"] for b in page["items"]]
         for booking in bookings:
             assert str(booking.id) in booking_ids
+        
+        await user_dao.delete_by_id(superuser.id)
 
         for booking in bookings:
             await BookingDao(test_session).delete_by_id(booking.id)
@@ -181,7 +194,12 @@ class TestUserRoomInteraction:
             booking = await BookingService.add_booking(booking_in, test_session, user.id)
             bookings.append(booking)
 
-        response = await test_client.get("/booking/?offset=0&limit=10")
+        app.dependency_overrides[current_active_user] = lambda: user
+        try:
+            response = await test_client.get("/booking/?offset=0&limit=10")
+        finally:
+            del app.dependency_overrides[current_active_user]
+
         assert response.status_code == 200
         page = response.json()
         
@@ -298,11 +316,19 @@ class TestPaginationIntegration:
             booking = await BookingService.add_booking(booking_in, test_session, user.id)
             bookings.append(booking)
 
-        response = await test_client.get("/booking/?offset=0&limit=5")
+        superuser = await user_dao.create(FakeDataGenerator.fake_user(override={"is_superuser": True}))
+        app.dependency_overrides[current_active_user] = lambda: superuser
+        try:
+            response = await test_client.get("/booking/?offset=0&limit=5")
+        finally:
+            del app.dependency_overrides[current_active_user]
+
         assert response.status_code == 200
         page = response.json()
         assert page["total"] == 20
         assert len(page["items"]) == 5
+        
+        await user_dao.delete_by_id(superuser.id)
 
         for booking in bookings:
             await BookingDao(test_session).delete_by_id(booking.id)

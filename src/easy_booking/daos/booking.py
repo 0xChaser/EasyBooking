@@ -37,13 +37,16 @@ class BookingDao(BaseDao):
         )
         return await self.session.scalar(statement=statement)
 
-    async def get_all(self, offset:int, limit:int) -> list[Booking]:
+    async def get_all(self, offset:int, limit:int, user_id: UUID | None = None) -> list[Booking]:
         statement = (
             select(Booking)
             .offset(offset)
             .limit(limit)
             .options(selectinload(Booking.user), selectinload(Booking.room))
         )
+        if user_id:
+            statement = statement.where(Booking.user_id == user_id)
+        
         result = await self.session.execute(statement=statement)
         return result.scalars().all()
     
@@ -61,8 +64,10 @@ class BookingDao(BaseDao):
             raise BookingLinkedToAnotherObject
         return _booking
     
-    async def count(self) -> int:
+    async def count(self, user_id: UUID | None = None) -> int:
         statement = select(func.count()).select_from(Booking)
+        if user_id:
+            statement = statement.where(Booking.user_id == user_id)
         result = await self.session.execute(statement=statement)
         return result.scalar_one()
 

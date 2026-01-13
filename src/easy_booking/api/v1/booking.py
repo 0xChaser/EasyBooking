@@ -22,9 +22,10 @@ current_active_user = fastapi_users.current_user(active=True)
 async def list_booking(
     offset:int=0,
     limit:int=10,
-    session:AsyncSession = Depends(get_session)
+    session:AsyncSession = Depends(get_session),
+    user: User = Depends(current_active_user)
 ):
-    return await BookingService.get_all_booking(session=session, offset=offset, limit=limit)
+    return await BookingService.get_all_booking(session=session, offset=offset, limit=limit, user=user)
 
 @router.get("/{id}", response_model=BookingOut)
 async def get_booking(id:UUID, session:AsyncSession=Depends(get_session)):

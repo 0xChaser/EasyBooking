@@ -7,6 +7,7 @@ from easy_booking.daos import booking, room
 from easy_booking.exceptions.booking import BookingNotFound
 from easy_booking.exceptions.room import RoomNotFound, RoomUnavailable
 from easy_booking.models.room import RoomStatus
+from easy_booking.models.user import User
 from easy_booking.schemas.booking import BookingIn, BookingOut, BookingPatch
 from easy_booking.schemas.page import Page
 
@@ -32,10 +33,14 @@ class BookingService:
         return new_booking
     
     @staticmethod
-    async def get_all_booking(offset:int, limit:int, session:AsyncSession) -> Page[BookingOut]:
-        all_booking = await booking.BookingDao(session).get_all(offset=offset, limit=limit)
+    async def get_all_booking(offset:int, limit:int, session:AsyncSession, user: User | None = None) -> Page[BookingOut]:
+        user_id = None
+        if user and not user.is_superuser:
+            user_id = user.id
+            
+        all_booking = await booking.BookingDao(session).get_all(offset=offset, limit=limit, user_id=user_id)
         return Page(
-            total = await booking.BookingDao(session).count(),
+            total = await booking.BookingDao(session).count(user_id=user_id),
             items=[BookingOut.model_validate(_booking) for _booking in all_booking],
             offset=offset,
             limit=limit,
