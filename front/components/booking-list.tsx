@@ -148,6 +148,12 @@ export default function BookingList() {
                     </div>
                   </TableCell>
                   <TableCell>
+                    <div className="flex items-center gap-1.5 text-sm font-medium">
+                      <User className="h-3.5 w-3.5 text-indigo-500" />
+                      {booking.user ? `${booking.user.first_name} ${booking.user.last_name}` : 'N/A'}
+                    </div>
+                  </TableCell>
+                  <TableCell>
                     <div className="flex items-center gap-1.5 text-sm">
                       <Calendar className="h-3.5 w-3.5 text-green-600" />
                       {format(new Date(booking.start_time), 'PPp', { locale: fr })}
