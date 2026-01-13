@@ -3,7 +3,7 @@
 ## Links :
 
 - Frontend : https://easybooking.flo-isk.fr
-- Backend : https://easybooking-api.flo-isk.fr
+- Backend : https://easybooking-api.flo-isk.fr/docs
 
 ### Frontend Technologies : 
 
