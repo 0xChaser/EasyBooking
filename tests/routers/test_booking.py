@@ -29,9 +29,13 @@ class TestBookingRouter:
 
         created_bookings = []
 
-        for _ in range(3):
+        for i in range(3):
             fake_booking_in = FakeDataGenerator.fake_booking_in(
-                override={"room_id": created_room.id}
+                override={
+                    "room_id": created_room.id,
+                    "start_time": datetime.now(timezone.utc) + timedelta(days=i),
+                    "end_time": datetime.now(timezone.utc) + timedelta(days=i, hours=2)
+                }
             )
             created_booking = await BookingService.add_booking(
                 fake_booking_in, 

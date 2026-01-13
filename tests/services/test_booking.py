@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -59,9 +60,13 @@ class TestBookingService:
 
         created_bookings = []
 
-        for _ in range(3):
+        for i in range(3):
             fake_booking_data = FakeDataGenerator.fake_booking_in(
-                override={"room_id": created_room.id}
+                override={
+                    "room_id": created_room.id,
+                    "start_time": datetime.now(timezone.utc) + timedelta(days=i),
+                    "end_time": datetime.now(timezone.utc) + timedelta(days=i, hours=2)
+                }
             )
             created_booking = await BookingService.add_booking(
                 fake_booking_data, 
@@ -224,9 +229,13 @@ class TestBookingService:
         created_user = await user_dao.create(fake_user_data)
         created_room = await room_dao.create(fake_room_data)
 
-        for _ in range(3):
+        for i in range(3):
             fake_booking_data = FakeDataGenerator.fake_booking_in(
-                override={"room_id": created_room.id}
+                override={
+                    "room_id": created_room.id,
+                    "start_time": datetime.now(timezone.utc) + timedelta(days=i),
+                    "end_time": datetime.now(timezone.utc) + timedelta(days=i, hours=2)
+                }
             )
             await BookingService.add_booking(
                 fake_booking_data, 

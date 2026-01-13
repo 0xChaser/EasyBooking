@@ -22,6 +22,7 @@ from easy_booking.daos.user import UserDao
 from easy_booking.daos.room import RoomDao
 from easy_booking.daos.booking import BookingDao
 from easy_booking.models.base import Base
+from datetime import datetime, timedelta, timezone
 from tests.utils.fake_data_generator import FakeDataGenerator
 
 
@@ -412,9 +413,15 @@ class TestBookingServicePerformance:
 
         perf_event_loop.run_until_complete(setup_dependencies())
 
+        booking_cpt = [0]
         async def create_booking():
+            booking_cpt[0] += 1
             async with perf_session_factory() as session:
-                booking_in = FakeDataGenerator.fake_booking_in({"room_id": room_id})
+                booking_in = FakeDataGenerator.fake_booking_in({
+                    "room_id": room_id,
+                    "start_time": datetime.now(timezone.utc) + timedelta(days=booking_cpt[0]),
+                    "end_time": datetime.now(timezone.utc) + timedelta(days=booking_cpt[0], hours=2)
+                })
                 booking = await BookingService.add_booking(booking_in, session, user_id)
                 return booking
 
@@ -561,11 +568,17 @@ class TestBookingServiceBulkPerformance:
 
         perf_event_loop.run_until_complete(setup_dependencies())
 
+        booking_cpt = [0]
         async def create_multiple_bookings():
+            booking_cpt[0] += 1
             async with perf_session_factory() as session:
                 bookings = []
                 for i in range(10):
-                    booking_in = FakeDataGenerator.fake_booking_in({"room_id": room_ids[i]})
+                    booking_in = FakeDataGenerator.fake_booking_in({
+                        "room_id": room_ids[i],
+                        "start_time": datetime.now(timezone.utc) + timedelta(days=booking_cpt[0]),
+                        "end_time": datetime.now(timezone.utc) + timedelta(days=booking_cpt[0], hours=2)
+                    })
                     booking = await BookingService.add_booking(booking_in, session, user_ids[i])
                     bookings.append(booking)
                 return bookings
