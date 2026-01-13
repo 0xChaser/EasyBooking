@@ -12,9 +12,7 @@ app = FastAPI(
     version=version(__package__),
     root_path="/api/v1",
     swagger_ui_parameters={
-        # "docExpansion": "none", Uncomment for better view of each endpoints when refresh on /docs
-        "syntaxHighlight.theme": "obsidian", # Sadge, it's unavailable
-        # "filter": True, Uncomment for filter on endpoint name
+        "syntaxHighlight.theme": "obsidian", 
     }
     )
 

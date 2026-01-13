@@ -16,7 +16,6 @@ from easy_booking.services.booking import BookingService
 
 router = APIRouter(prefix="/booking", tags=["Booking"])
 
-# Dependency to get current user
 current_active_user = fastapi_users.current_user(active=True)
 
 @router.get("/", response_model=Page[BookingOut])
@@ -25,14 +24,6 @@ async def list_booking(
     limit:int=10,
     session:AsyncSession = Depends(get_session)
 ):
-    """
-    Get all booking:
-    
-    Return : 
-    
-    BookingOut : Booking with all it's attributes 
-    
-    """
     return await BookingService.get_all_booking(session=session, offset=offset, limit=limit)
 
 @router.get("/{id}", response_model=BookingOut)

@@ -12,7 +12,7 @@ services:
        - ~/.ssh:/root/.ssh
        - /root/config
      ports:
-       - "8001:8000"
+       - "9000:8000"
      depends_on:
        - easy_booking_db
      restart: always
@@ -51,6 +51,13 @@ services:
       - .env
     networks:
       - "easy_booking_network"
+   easby_booking_front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    ports:
+      - "9001:3000"
+    restart: always
 
 volumes:
   postgres_data:

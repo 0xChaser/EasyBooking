@@ -1,9 +1,17 @@
 from uuid import UUID
 from datetime import datetime
+from enum import Enum
 from pydantic import BaseModel, ConfigDict
 
 from easy_booking.schemas.room import RoomOut
 from easy_booking.schemas.user import UserOut
+
+
+class BookingStatus(str, Enum):
+    SCHEDULED = "scheduled"
+    CONFIRMED = "confirmed"
+    CANCELLED = "cancelled"
+    COMPLETED = "completed"
 
 
 class BookingBase(BaseModel):
@@ -15,17 +23,23 @@ class BookingBase(BaseModel):
 
 
 class BookingIn(BookingBase):
-    pass
+    status: BookingStatus = BookingStatus.SCHEDULED
 
 
-class BookingOut(BookingIn):
+class BookingOut(BookingBase):
     id: UUID
     user_id: UUID
+    status: BookingStatus
     created_at: datetime
     user: UserOut | None = None
     room: RoomOut | None = None
 
 
-class BookingPatch(BookingIn):
-    pass
+class BookingPatch(BaseModel):
+    room_id: UUID | None = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
+    status: BookingStatus | None = None
+
+    model_config = ConfigDict(from_attributes=True)
 

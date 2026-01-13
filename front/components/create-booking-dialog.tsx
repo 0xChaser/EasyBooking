@@ -31,6 +31,7 @@ interface CreateBookingDialogProps {
 interface Room {
   id: string;
   name: string;
+  status: 'available' | 'unavailable' | 'maintenance';
 }
 
 export default function CreateBookingDialog({ roomId, roomName, onBookingCreated }: CreateBookingDialogProps) {
@@ -51,7 +52,8 @@ export default function CreateBookingDialog({ roomId, roomName, onBookingCreated
   const fetchRooms = async () => {
     try {
       const response = await api.get('/api/v1/room/');
-      setRooms(response.data.items);
+      const availableRooms = response.data.items.filter((room: Room) => room.status === 'available');
+      setRooms(availableRooms);
     } catch (error) {
       console.error('Error fetching rooms:', error);
     }

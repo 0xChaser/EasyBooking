@@ -40,6 +40,12 @@ class SQLiteUUID(TypeDecorator):
         return value
 
     def process_literal_param(self, value, dialect):
+        """Process literal values (used in SQL compilation)."""
+        if value is None:
+            return value
+        if isinstance(value, uuid.UUID):
+            return str(value)
+        return str(value)
 
     @property
     def python_type(self):

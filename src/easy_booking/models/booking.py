@@ -1,10 +1,18 @@
 import uuid
 from datetime import datetime, timezone
+from enum import Enum
 
-from sqlalchemy import UUID, TIMESTAMP, ForeignKey
+from sqlalchemy import UUID, TIMESTAMP, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from easy_booking.models.base import Base
+
+
+class BookingStatus(str, Enum):
+    SCHEDULED = "scheduled"
+    CONFIRMED = "confirmed"
+    CANCELLED = "cancelled"
+    COMPLETED = "completed"
 
 
 class Booking(Base):
@@ -23,6 +31,9 @@ class Booking(Base):
     
     start_time: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     end_time: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
+    status: Mapped[BookingStatus] = mapped_column(
+        SQLEnum(BookingStatus, values_callable=lambda x: [e.value for e in x]), default=BookingStatus.SCHEDULED, nullable=False
+    )
     
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 

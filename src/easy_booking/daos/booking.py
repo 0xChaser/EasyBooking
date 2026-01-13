@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import delete, func, select
@@ -7,7 +8,8 @@ from sqlalchemy.orm import selectinload
 
 from easy_booking.daos.base import BaseDao
 from easy_booking.exceptions.booking import BookingLinkedToAnotherObject
-from easy_booking.models.booking import Booking
+from easy_booking.exceptions.booking import BookingLinkedToAnotherObject
+from easy_booking.models.booking import Booking, BookingStatus
 
 class BookingDao(BaseDao):
     def __init__(self, session:AsyncSession):
@@ -63,3 +65,13 @@ class BookingDao(BaseDao):
         statement = select(func.count()).select_from(Booking)
         result = await self.session.execute(statement=statement)
         return result.scalar_one()
+
+    async def check_overlapping_bookings(self, room_id: UUID, start_time: datetime, end_time: datetime) -> bool:
+        statement = select(Booking).where(
+            Booking.room_id == room_id,
+            Booking.start_time < end_time,
+            Booking.end_time > start_time,
+            Booking.status != BookingStatus.CANCELLED
+        )
+        result = await self.session.execute(statement)
+        return result.scalars().first() is not None

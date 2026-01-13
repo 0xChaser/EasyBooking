@@ -13,7 +13,6 @@ try:
 except ImportError:
     uvicorn = None
 
-# helped from fastapi_cli -> https://github.com/fastapi/fastapi-cli/blob/e1cc513854e9fc9082962f3d79cb84d1429ffb4f/src/fastapi_cli/cli.py#L17
 app = typer.Typer(rich_markup_mode="rich")
 
 
@@ -32,7 +31,7 @@ def run(
         ),
     ] = settings.port,
     workers: Annotated[
-        Union[int, None],  # noqa: UP007  # not supported by typer
+        Union[int, None],
         typer.Option(help="Number of workers processes to deploy with Uvicorn UWSGI server."),
     ] = settings.workers,
     proxy_headers: Annotated[
@@ -72,7 +71,7 @@ def dev(
         ),
     ] = settings.port,
     workers: Annotated[
-        Union[int, None],  # noqa: UP007  # not supported by typer
+        Union[int, None],
         typer.Option(help="Number of workers processes to deploy with Uvicorn UWSGI server."),
     ] = settings.workers,
     proxy_headers: Annotated[
@@ -120,7 +119,7 @@ def _run(
     if not uvicorn:
         raise EasyBookingCLIException("Could not import Uvicorn, try running 'pip install uvicorn'")
     uvicorn.run(
-        app=f"{__package__}.main:app",  # required by uvicorn to enable reload and workers
+        app=f"{__package__}.main:app",
         host=host,
         port=port,
         reload=dev_mode,

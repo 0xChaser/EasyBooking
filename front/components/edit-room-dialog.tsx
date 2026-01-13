@@ -17,14 +17,23 @@ import { toast } from 'sonner';
 import { Pencil } from 'lucide-react';
 import api from '@/lib/axios';
 
+type RoomStatus = 'available' | 'unavailable' | 'maintenance';
+
 interface EditRoomDialogProps {
   roomId: string;
   roomName: string;
   roomAddress: string;
   roomCapacity: number;
   roomDescription: string | null;
+  roomStatus: RoomStatus;
   onRoomUpdated?: () => void;
 }
+
+const statusOptions: { value: RoomStatus; label: string }[] = [
+  { value: 'available', label: 'Disponible' },
+  { value: 'unavailable', label: 'Indisponible' },
+  { value: 'maintenance', label: 'En maintenance' },
+];
 
 export default function EditRoomDialog({
   roomId,
@@ -32,6 +41,7 @@ export default function EditRoomDialog({
   roomAddress,
   roomCapacity,
   roomDescription,
+  roomStatus,
   onRoomUpdated,
 }: EditRoomDialogProps) {
   const [open, setOpen] = useState(false);
@@ -41,6 +51,7 @@ export default function EditRoomDialog({
     address: roomAddress,
     capacity: roomCapacity.toString(),
     description: roomDescription || '',
+    status: roomStatus,
   });
 
   useEffect(() => {
@@ -50,9 +61,10 @@ export default function EditRoomDialog({
         address: roomAddress,
         capacity: roomCapacity.toString(),
         description: roomDescription || '',
+        status: roomStatus,
       });
     }
-  }, [open, roomName, roomAddress, roomCapacity, roomDescription]);
+  }, [open, roomName, roomAddress, roomCapacity, roomDescription, roomStatus]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,6 +76,7 @@ export default function EditRoomDialog({
         address: formData.address,
         capacity: parseInt(formData.capacity),
         description: formData.description || null,
+        status: formData.status,
       });
 
       toast.success('Salle modifiée avec succès');
@@ -129,6 +142,21 @@ export default function EditRoomDialog({
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-status">Statut</Label>
+              <select
+                id="edit-status"
+                className="w-full px-3 py-2 border rounded-md bg-background"
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value as RoomStatus })}
+              >
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <DialogFooter>

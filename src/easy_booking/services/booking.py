@@ -3,8 +3,10 @@ from uuid import UUID
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from easy_booking.daos import booking
+from easy_booking.daos import booking, room
 from easy_booking.exceptions.booking import BookingNotFound
+from easy_booking.exceptions.room import RoomNotFound, RoomUnavailable
+from easy_booking.models.room import RoomStatus
 from easy_booking.schemas.booking import BookingIn, BookingOut, BookingPatch
 from easy_booking.schemas.page import Page
 
@@ -13,6 +15,16 @@ class BookingService:
 
     @staticmethod
     async def add_booking(booking_data:BookingIn, session:AsyncSession, user_id:UUID):
+        room_dao = room.RoomDao(session)
+        _room = await room_dao.get_by_id(booking_data.room_id)
+        if not _room:
+            raise RoomNotFound
+        if _room.status != RoomStatus.AVAILABLE:
+            raise RoomUnavailable(_room.status.value)
+        
+        if await booking.BookingDao(session).check_overlapping_bookings(booking_data.room_id, booking_data.start_time, booking_data.end_time):
+             raise RoomUnavailable("Room is already booked for this time period")
+        
         booking_dict = booking_data.model_dump()
         booking_dict["user_id"] = user_id
         new_booking = await booking.BookingDao(session).create(booking_dict)
@@ -44,7 +56,6 @@ class BookingService:
         for key,value in booking_patch.model_dump(exclude_unset=True).items():
             setattr(_booking, key, value)
         await session.commit()
-        # Reload with relations
         _booking = await booking.BookingDao(session).get_by_id(booking_id)
         return _booking
     

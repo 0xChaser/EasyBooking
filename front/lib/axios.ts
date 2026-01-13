@@ -26,7 +26,6 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       Cookies.remove('token');
-      // Window redirect is not ideal in Next.js but effective for global logout
       if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
          window.location.href = '/login';
       }

@@ -6,6 +6,7 @@ import pytest
 from easy_booking.daos.booking import BookingDao
 from easy_booking.daos.room import RoomDao
 from easy_booking.daos.user import UserDao
+from easy_booking.exceptions.room import RoomNotFound, RoomUnavailable
 from easy_booking.services.booking import BookingService
 from easy_booking.services.room import RoomService
 from easy_booking.services.user import UserService
@@ -320,10 +321,100 @@ class TestErrorHandlingIntegration:
         fake_room_id = uuid.uuid4()
         booking_in = FakeDataGenerator.fake_booking_in({"room_id": fake_room_id})
         
-        booking = await BookingService.add_booking(booking_in, test_session, user.id)
-        assert booking is not None
+        with pytest.raises(RoomNotFound):
+            await BookingService.add_booking(booking_in, test_session, user.id)
 
-        await BookingDao(test_session).delete_by_id(booking.id)
+        await user_dao.delete_by_id(user.id)
+
+    async def test_prevent_double_booking(self, test_session, test_client):
+        room_data = {
+            "name": "Salle Double Booking",
+            "address": "Test Address",
+            "capacity": 10,
+            "description": "Test double booking",
+        }
+        response = await test_client.post("/room/", json=room_data)
+        assert response.status_code == 200
+        room_id = uuid.UUID(response.json()["id"])
+
+        user_dao = UserDao(test_session)
+        user = await user_dao.create(FakeDataGenerator.fake_user())
+
+        start_time = datetime.now(timezone.utc) + timedelta(days=5)
+        end_time = start_time + timedelta(hours=2)
+
+        booking1_in = FakeDataGenerator.fake_booking_in({
+            "room_id": room_id,
+            "start_time": start_time,
+            "end_time": end_time,
+        })
+        booking1 = await BookingService.add_booking(booking1_in, test_session, user.id)
+
+        # Attempt to book overlapping time
+        booking2_in = FakeDataGenerator.fake_booking_in({
+            "room_id": room_id,
+            "start_time": start_time + timedelta(hours=1), # Overlaps
+            "end_time": end_time + timedelta(hours=1),
+        })
+
+        with pytest.raises(RoomUnavailable):
+            await BookingService.add_booking(booking2_in, test_session, user.id)
+
+        await BookingDao(test_session).delete_by_id(booking1.id)
+        await RoomDao(test_session).delete_by_id(room_id)
+        await user_dao.delete_by_id(user.id)
+
+    async def test_allow_booking_if_overlapping_is_cancelled(self, test_session, test_client):
+        room_data = {
+            "name": "Salle Cancelled Booking",
+            "address": "Test Address",
+            "capacity": 10,
+            "description": "Test cancelled booking",
+        }
+        response = await test_client.post("/room/", json=room_data)
+        assert response.status_code == 200
+        room_id = uuid.UUID(response.json()["id"])
+        room_id_str = str(room_id)
+
+        user_dao = UserDao(test_session)
+        user = await user_dao.create(FakeDataGenerator.fake_user())
+
+        start_time = datetime.now(timezone.utc) + timedelta(days=10)
+        end_time = start_time + timedelta(hours=2)
+
+        booking1_in = FakeDataGenerator.fake_booking_in({
+            "room_id": room_id,
+            "start_time": start_time,
+            "end_time": end_time,
+        })
+        booking1 = await BookingService.add_booking(booking1_in, test_session, user.id)
+        
+        # Cancel the booking
+        patch_data = {"status": "cancelled"}
+        # Assuming there is an endpoint to patch booking, checking test_workflows..
+        # The test `test_complete_booking_workflow` doesn't show a patch endpoint for booking status, 
+        # but `BookingService.update_by_id` exists. 
+        # Let's use the service directly to ensure we set the status to CANCELLED locally if API not ready,
+        # OR assume the API exists. `BookingService` has `update_by_id` accepting `BookingPatch`.
+        # Wait, I need `BookingPatch` to support status.
+        
+        # Checking BookingPatch schema if possible, or just updating directly via DAO for test setup if simpler.
+        # But wait, looking at `BookingPatch` in `booking.py` (model) - no, schema is in `schemas/booking.py`.
+        # I'll update via DAO/Service directly using object modification for simplicity if needed, 
+        # but cleaner to use Service.
+        
+        # Let's import BookingPatch and update.
+        from easy_booking.schemas.booking import BookingPatch, BookingStatus
+        await BookingService.update_by_id(booking1.id, BookingPatch(status=BookingStatus.CANCELLED), test_session)
+        
+        # Now try to book overlapping time
+        booking2 = await BookingService.add_booking(booking1_in, test_session, user.id)
+        assert booking2 is not None
+        assert booking2.id != booking1.id
+
+        await BookingDao(test_session).delete_by_id(booking1.id)
+        await BookingDao(test_session).delete_by_id(booking2.id)
+        await RoomDao(test_session).delete_by_id(room_id)
         await user_dao.delete_by_id(user.id)
 
     async def test_get_nonexistent_resources(self, test_client):

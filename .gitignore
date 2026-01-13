@@ -10,3 +10,4 @@ script.py
 build/
 .coverage
 .pytest_monitor.db
+.pymon

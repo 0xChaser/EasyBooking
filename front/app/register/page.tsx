@@ -26,8 +26,6 @@ export default function RegisterPage() {
     try {
       await register(email, password, firstName, lastName);
       toast.success('Compte créé avec succès !');
-      
-      // Auto-login après inscription
       await login(email, password);
       router.push('/dashboard');
     } catch (error: any) {

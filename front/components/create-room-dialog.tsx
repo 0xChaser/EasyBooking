@@ -17,9 +17,17 @@ import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
 import api from '@/lib/axios';
 
+type RoomStatus = 'available' | 'unavailable' | 'maintenance';
+
 interface CreateRoomDialogProps {
   onRoomCreated?: () => void;
 }
+
+const statusOptions: { value: RoomStatus; label: string }[] = [
+  { value: 'available', label: 'Disponible' },
+  { value: 'unavailable', label: 'Indisponible' },
+  { value: 'maintenance', label: 'En maintenance' },
+];
 
 export default function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
   const [open, setOpen] = useState(false);
@@ -29,6 +37,7 @@ export default function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProp
     address: '',
     capacity: '',
     description: '',
+    status: 'available' as RoomStatus,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,11 +50,12 @@ export default function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProp
         address: formData.address,
         capacity: parseInt(formData.capacity),
         description: formData.description || null,
+        status: formData.status,
       });
 
       toast.success('Salle créée avec succès');
       setOpen(false);
-      setFormData({ name: '', address: '', capacity: '', description: '' });
+      setFormData({ name: '', address: '', capacity: '', description: '', status: 'available' });
       onRoomCreated?.();
     } catch (error: any) {
       console.error('Error creating room:', error);
@@ -108,6 +118,21 @@ export default function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProp
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="status">Statut</Label>
+              <select
+                id="status"
+                className="w-full px-3 py-2 border rounded-md bg-background"
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value as RoomStatus })}
+              >
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <DialogFooter>
