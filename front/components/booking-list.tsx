@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Calendar, Clock, MapPin, Trash2, CheckCircle, XCircle, CalendarCheck, CalendarClock } from 'lucide-react';
+import { Calendar, Clock, MapPin, Trash2, CheckCircle, XCircle, CalendarCheck, CalendarClock, User } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -31,6 +31,12 @@ interface Booking {
     id: string;
     name: string;
     address: string;
+  };
+  user?: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
   };
 }
 
@@ -118,6 +124,7 @@ export default function BookingList() {
             <TableRow>
               <TableHead className="font-semibold">Salle</TableHead>
               <TableHead className="font-semibold">Adresse</TableHead>
+              <TableHead className="font-semibold">Utilisateur</TableHead>
               <TableHead className="font-semibold">Début</TableHead>
               <TableHead className="font-semibold">Fin</TableHead>
               <TableHead className="font-semibold">Statut</TableHead>
@@ -128,7 +135,7 @@ export default function BookingList() {
             {bookings.map((booking) => {
               const status = statusConfig[booking.status] || statusConfig.scheduled;
               const canCancel = booking.status === 'scheduled' || booking.status === 'confirmed';
-              
+
               return (
                 <TableRow key={booking.id} className={`hover:bg-blue-50/50 dark:hover:bg-gray-800/50 transition-colors ${booking.status === 'cancelled' ? 'opacity-60' : ''}`}>
                   <TableCell className="font-medium">
@@ -181,10 +188,10 @@ export default function BookingList() {
         {bookings.map((booking) => {
           const status = statusConfig[booking.status] || statusConfig.scheduled;
           const canCancel = booking.status === 'scheduled' || booking.status === 'confirmed';
-          
+
           return (
-            <Card 
-              key={booking.id} 
+            <Card
+              key={booking.id}
               className={`hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/50 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 ${booking.status === 'cancelled' ? 'opacity-60' : ''}`}
             >
               <CardHeader className="pb-3">
@@ -200,6 +207,12 @@ export default function BookingList() {
                 <CardDescription className="flex items-center gap-1.5">
                   <MapPin className="h-3.5 w-3.5 text-blue-500 flex-shrink-0" />
                   <span className="line-clamp-1">{booking.room?.address || '-'}</span>
+                  {booking.user && (
+                    <div className="flex items-center gap-1 ml-2 pl-2 border-l border-gray-300 dark:border-gray-600">
+                      <User className="h-3.5 w-3.5 text-indigo-500 flex-shrink-0" />
+                      <span className="text-sm font-medium">{booking.user.first_name} {booking.user.last_name}</span>
+                    </div>
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
