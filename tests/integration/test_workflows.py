@@ -415,25 +415,11 @@ class TestErrorHandlingIntegration:
         })
         booking1 = await BookingService.add_booking(booking1_in, test_session, user.id)
         
-        # Cancel the booking
         patch_data = {"status": "cancelled"}
-        # Assuming there is an endpoint to patch booking, checking test_workflows..
-        # The test `test_complete_booking_workflow` doesn't show a patch endpoint for booking status, 
-        # but `BookingService.update_by_id` exists. 
-        # Let's use the service directly to ensure we set the status to CANCELLED locally if API not ready,
-        # OR assume the API exists. `BookingService` has `update_by_id` accepting `BookingPatch`.
-        # Wait, I need `BookingPatch` to support status.
         
-        # Checking BookingPatch schema if possible, or just updating directly via DAO for test setup if simpler.
-        # But wait, looking at `BookingPatch` in `booking.py` (model) - no, schema is in `schemas/booking.py`.
-        # I'll update via DAO/Service directly using object modification for simplicity if needed, 
-        # but cleaner to use Service.
-        
-        # Let's import BookingPatch and update.
         from easy_booking.schemas.booking import BookingPatch, BookingStatus
         await BookingService.update_by_id(booking1.id, BookingPatch(status=BookingStatus.CANCELLED), test_session)
         
-        # Now try to book overlapping time
         booking2 = await BookingService.add_booking(booking1_in, test_session, user.id)
         assert booking2 is not None
         assert booking2.id != booking1.id
