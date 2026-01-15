@@ -15,8 +15,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create .env file
+        run: |
+          echo "database_uri=postgresql+asyncpg://easy_booking_admin:test@easy_booking_db:5432/easy_booking" >> .env
+          echo "POSTGRES_USER='easy_booking_admin'" >> .env
+          echo "POSTGRES_PASSWORD='test'" >> .env
+          echo "POSTGRES_DB='easy_booking'" >> .env
+          echo "PGADMIN_EMAIL='test@gmail.com'" >> .env
+          echo "PGADMIN_PASSWORD='test'" >> .env
+          echo "host='0.0.0.0'" >> .env
+          echo "SECRET_KEY='ci_secret_key'" >> .env
+          echo "ALGORITHM='HS256'" >> .env
+          echo "TOKEN_LIFETIME_IN_SECONDS=3600" >> .env
+          echo "DATE_FORMAT=%Y-%m-%d %H:%M:%S" >> .env
+
       - name: Build Docker image
         run: docker build --target development -t easy-booking-test .
 
-      - name: Run tests
+      - name: Run tests (unit, integration and performance)
         run: docker run --rm --entrypoint pytest easy-booking-test --cov --cov-fail-under=90 -W ignore
+
+      - name: Test security
+        run: docker run --rm --entrypoint bandit easy-booking-test -c pyproject.toml -r src/
