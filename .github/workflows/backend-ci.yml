@@ -36,4 +36,6 @@ jobs:
         run: docker run --rm --entrypoint pytest easy-booking-test --cov --cov-fail-under=90 -W ignore
 
       - name: Test security
-        run: docker run --rm --entrypoint bandit easy-booking-test -c pyproject.toml -r src/
+        run: |
+          docker run --rm --entrypoint bandit easy-booking-test -c pyproject.toml -r src/
+          docker run --rm --entrypoint pytest easy-booking-test tests/security/
