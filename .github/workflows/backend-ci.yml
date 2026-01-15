@@ -24,7 +24,7 @@ jobs:
           echo "PGADMIN_EMAIL='test@gmail.com'" >> .env
           echo "PGADMIN_PASSWORD='test'" >> .env
           echo "host='0.0.0.0'" >> .env
-          echo "SECRET_KEY='ci_secret_key'" >> .env
+          echo "SECRET_KEY='fleozeozienfinfhnfleozeozienfinfhnfleozeozienfinfhn'" >> .env
           echo "ALGORITHM='HS256'" >> .env
           echo "TOKEN_LIFETIME_IN_SECONDS=3600" >> .env
           echo "DATE_FORMAT=%Y-%m-%d %H:%M:%S" >> .env
