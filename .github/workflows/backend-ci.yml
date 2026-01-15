@@ -1,0 +1,22 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Backend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build --target development -t easy-booking-test .
+
+      - name: Run tests
+        run: docker run --rm --entrypoint pytest easy-booking-test --cov --cov-fail-under=90 -W ignore
